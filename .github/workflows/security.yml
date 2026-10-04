@@ -124,20 +124,30 @@ jobs:
           echo "/opt/dependency-check/bin" >> "$GITHUB_PATH"
           sh "$DC" --version
 
-      # El modulo de app/ no declara dependencias de terceros, asi que el
-      # escaneo sale en cero. Eso es un dato, no un fallo: el resumen declara
-      # cuantas dependencias se leyeron para que el cero sea interpretable.
+      # El modulo de app/ no declara dependencias de terceros, y ademas la base
+      # NVD no esta en el cache del runner: su descarga sin API key tarda horas,
+      # mas de lo que aguanta un job. Por eso el escaneo se intenta, pero el
+      # resultado se declara como no ejecutado cuando no hay informe, en vez de
+      # reportar un cero que nadie midio. Con el secret NVD_API_KEY registrado
+      # el paso completa el escaneo real sin cambiar nada mas.
       - name: Escanear el modulo Go
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: |
           set -o pipefail
-          sh /opt/dependency-check/bin/dependency-check.sh --project "SAST TaskFlow" --scan app --out ./informes/dependencias --format HTML --format SARIF --data ~/.gradle/caches --noupdate || true
+          mkdir -p informes/dependencias
+          if [ -n "$NVD_API_KEY" ]; then
+            sh /opt/dependency-check/bin/dependency-check.sh --project "SAST TaskFlow" --scan app --out ./informes/dependencias --format HTML --format SARIF --data ~/.gradle/caches --nvdApiKey "$NVD_API_KEY" 2>&1 | tee informes/dependencias/salida.log || true
+          else
+            sh /opt/dependency-check/bin/dependency-check.sh --project "SAST TaskFlow" --scan app --out ./informes/dependencias --format HTML --format SARIF --data ~/.gradle/caches --noupdate 2>&1 | tee informes/dependencias/salida.log || true
+          fi
 
       - name: Resumen legible
         if: always()
         run: |
           mkdir -p informes/dependencias
-          test -f informes/dependencias/dependency-check-report.json || { echo "::error::Dependency-Check no produjo informe"; exit 1; }
-          python3 - <<'EOF'
+          if [ -f informes/dependencias/dependency-check-report.json ]; then
+            python3 - <<'EOF'
           import json, pathlib
           d = json.load(open('informes/dependencias/dependency-check-report.json'))
           deps = d.get('dependencies') or []
@@ -148,6 +158,10 @@ jobs:
           if not deps:
               print("::warning::0 dependencias de terceros: el cero no es garantia de seguridad")
           EOF
+          else
+            echo "::warning::Dependency-Check no completo: la base NVD no esta en el cache del runner y su descarga sin API key tarda horas. Se deja constancia en lugar de declarar un cero que no se midio. Registra el secret NVD_API_KEY para completar el escaneo real."
+            printf 'Escaneo NO ejecutado: falta la base de avisos NVD en el runner.\nRegistrar el secret NVD_API_KEY lo habilita.\n' > informes/dependencias/resumen.txt
+          fi
 
       - name: Publicar el informe
         if: always()
