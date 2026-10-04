@@ -14,7 +14,17 @@ estático con reglas mapeadas a CWE.
 | `app/` | Aplicación Go deliberadamente insegura, caso de estudio |
 | `articulos/` | Los dos artículos escritos para publicar |
 | `informe-gosec.json` | Informe real del escaneo: 17 hallazgos |
+| `web/` | Informe de SAST publicado como aplicación web |
 | `guion-video.md` | Guion del video de máximo 5 minutos |
+
+## Enlaces
+
+| | |
+|---|---|
+| **Aplicación publicada** | https://sast-taskflow.vercel.app |
+| **Repositorio** | https://github.com/UPT-FAING-EPIS/actividad-grupal-1-sast |
+| **Artículo 1** | https://dev.to/dejameingresar/auditar-dependencias-con-owasp-dependency-check-ei8 |
+| **Artículo 2** | https://dev.to/dejameingresar/detectar-vulnerabilidades-en-go-con-gosec-2h46 |
 
 ## Resultados
 

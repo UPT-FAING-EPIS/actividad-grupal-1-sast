@@ -1,0 +1,13 @@
+# Secretos
+*.key
+*.pem
+.env
+.env.*
+
+#-herramientas
+/seguridad/bin/
+gosec
+informe.json
+
+# sistema
+.DS_Store

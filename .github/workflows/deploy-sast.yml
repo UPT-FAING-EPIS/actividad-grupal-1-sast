@@ -1,0 +1,75 @@
+name: Publicar informe SAST
+
+# Despliega el informe de SAST a Vercel en cada push a main.
+# El sitio es estatico puro: no hay paso de build, solo publicacion.
+
+on:
+  push:
+    branches: [main]
+    paths: ['web/**']
+  workflow_dispatch:
+  schedule:
+    # Reescanea la app cada lunes y republisha el informe con los hallazgos
+    # que hubiera en ese momento.
+    - cron: "23 7 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  gosec:
+    name: Escanear app
+    runs-on: ubuntu-latest
+    outputs:
+      total: ${{ steps.scan.outputs.total }}
+      altos: ${{ steps.scan.outputs_altos }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Instalar gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@v2.29.0
+
+      - name: Escanear
+        id: scan
+        run: |
+          $(go env GOPATH)/bin/gosec -no-fail -fmt=json -out=informe.json ./app/...
+          python3 - <<'EOF'
+          import json, collections, pathlib, os
+          d = json.load(open('informe.json'))
+          iss = d.get('Issues') or []
+          st = d.get('Stats') or {}
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+              fh.write(f"total={len(iss)}\n")
+          print(f"Hallazgos: {len(iss)}")
+          print("Por severidad:", dict(collections.Counter(i['severity'] for i in iss)))
+          print(f"Archivos: {st.get('files')} | Lineas: {st.get('lines')}")
+          pathlib.Path('gosec-resumen.txt').write_text(
+              '\n'.join(f"[{i['severity']}] {i['rule_id']} L{i['line']} {i['details']}" for i in iss))
+          EOF
+
+      - name: Guardar el informe
+        uses: actions/upload-artifact@v4
+        with:
+          name: informe-gosec
+          path: |
+            informe.json
+            gosec-resumen.txt
+
+  publicar:
+    name: Desplegar en Vercel
+    needs: gosec
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Desplegar
+        run: npx vercel deploy --prod --yes --token "${{ secrets.VERCEL_TOKEN }}"
+        working-directory: web
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

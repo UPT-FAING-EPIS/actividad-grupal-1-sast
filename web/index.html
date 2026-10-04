@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAST TaskFlow · 17 hallazgos de gosec</title>
+<meta name="description" content="Informe de analisis estatico de una aplicacion Go deliberadamente insegura: 17 hallazgos de gosec, cinco de severidad alta.">
+<style>
+  :root {
+    --alto: #b91c1c; --medio: #b45309; --bajo: #4b5563;
+    --alto-bg: #fef2f2; --medio-bg: #fffbeb; --bajo-bg: #f3f4f6;
+    --gris-900: #0f172a; --gris-700: #334155; --gris-500: #64748b;
+    --gris-300: #cbd5e1; --gris-100: #f1f5f9; --blanco: #fff;
+    --radio: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 15px; color: var(--gris-900); background: var(--gris-100);
+  }
+  header {
+    background: var(--gris-900); color: var(--blanco);
+    padding: 1.5rem 1.5rem 2.5rem;
+  }
+  header .cont { max-width: 1000px; margin: 0 auto; }
+  h1 { margin: 0 0 .4rem; font-size: 1.6rem; }
+  header p { margin: 0; color: var(--gris-300); font-size: .92rem; }
+  main { max-width: 1000px; margin: -1.5rem auto 3rem; padding: 0 1.5rem; }
+  .resumen {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: .75rem; margin-bottom: 1.5rem;
+  }
+  .tarjeta {
+    background: var(--blanco); border-radius: var(--radio); padding: 1rem;
+    box-shadow: 0 4px 12px rgba(15,23,42,.1); text-align: center;
+  }
+  .tarjeta strong { display: block; font-size: 1.9rem; line-height: 1.1; }
+  .tarjeta span { font-size: .78rem; color: var(--gris-500); }
+  .tarjeta.alto strong { color: var(--alto); }
+  .tarjeta.medio strong { color: var(--medio); }
+  .aviso {
+    background: var(--medio-bg); border-left: 4px solid var(--medio);
+    padding: .9rem 1.1rem; border-radius: 8px; margin-bottom: 1.5rem;
+    font-size: .88rem;
+  }
+  .filtros { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .filtros button {
+    padding: .4rem .9rem; border: 1px solid var(--gris-300); background: var(--blanco);
+    border-radius: 20px; font: inherit; font-size: .85rem; cursor: pointer;
+  }
+  .filtros button.activo { background: var(--gris-900); color: var(--blanco); border-color: var(--gris-900); }
+  .hallazgo {
+    background: var(--blanco); border-radius: var(--radio); padding: 1rem 1.15rem;
+    margin-bottom: .7rem; box-shadow: 0 1px 3px rgba(15,23,42,.08);
+    border-left: 4px solid var(--gris-300);
+  }
+  .hallazgo.alto { border-left-color: var(--alto); }
+  .hallazgo.medio { border-left-color: var(--medio); }
+  .hallazgo.bajo { border-left-color: var(--bajo); }
+  .hallazgo__cab { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+  .sev {
+    padding: .1rem .55rem; border-radius: 20px; font-size: .7rem;
+    font-weight: 700; letter-spacing: .4px; text-transform: uppercase;
+  }
+  .sev.alto { background: var(--alto-bg); color: var(--alto); }
+  .sev.medio { background: var(--medio-bg); color: var(--medio); }
+  .sev.bajo { background: var(--bajo-bg); color: var(--bajo); }
+  .regla {
+    font-family: ui-monospace, "Cascadia Code", monospace; font-size: .82rem;
+    font-weight: 700; background: var(--gris-100); padding: .1rem .45rem; border-radius: 4px;
+  }
+  .cwe {
+    font-family: ui-monospace, monospace; font-size: .76rem; color: var(--gris-500);
+    text-decoration: none; border-bottom: 1px dotted var(--gris-500);
+  }
+  .linea { font-family: ui-monospace, monospace; font-size: .76rem; color: var(--gris-500); margin-left: auto; }
+  .hallazgo__det { margin: .55rem 0 0; font-size: .9rem; }
+  .codigo {
+    margin: .6rem 0 0; padding: .7rem .85rem; background: var(--gris-900); color: #e2e8f0;
+    border-radius: 6px; font-family: ui-monospace, monospace; font-size: .78rem;
+    overflow-x: auto; line-height: 1.5;
+  }
+  footer { text-align: center; padding: 2rem 1rem; color: var(--gris-500); font-size: .85rem; }
+  footer a { color: var(--gris-700); }
+  .oculto { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="cont">
+    <h1>TaskFlow Demo · Informe de SAST</h1>
+    <p>Análisis estático con gosec 2.29.0 sobre una aplicación Go escrita a propósito
+       con los fallos más comunes. 17 hallazgos, cinco de severidad alta.</p>
+  </div>
+</header>
+
+<main>
+  <div class="resumen">
+    <div class="tarjeta"><strong>17</strong><span>Hallazgos</span></div>
+    <div class="tarjeta alto"><strong>5</strong><span>Alta</span></div>
+    <div class="tarjeta medio"><strong>11</strong><span>Media</span></div>
+    <div class="tarjeta"><strong>1</strong><span>Baja</span></div>
+    <div class="tarjeta"><strong>150</strong><span>Líneas</span></div>
+    <div class="tarjeta"><strong>13</strong><span>Reglas</span></div>
+  </div>
+
+  <div class="aviso">
+    <strong>Esta aplicación es deliberadamente insegura.</strong> Existe como caso de
+    estudio para demostrar qué detecta un análisis estático. No está desplegada en
+    ningún servicio, no usa datos reales y no debe usarse en producción.
+  </div>
+
+  <div class="filtros">
+    <button class="activo" data-f="todas">Todas (17)</button>
+    <button data-f="alto">Alta (5)</button>
+    <button data-f="medio">Media (11)</button>
+    <button data-f="bajo">Baja (1)</button>
+    <button data-f="taint">Análisis de taint (6)</button>
+  </div>
+
+  <div id="lista"></div>
+</main>
+
+<footer>
+  Generado desde <code>informe-gosec.json</code> · herramientas:
+  <a href="https://github.com/securego/gosec">gosec</a> ·
+  <a href="https://cwe.mitre.org/">CWE MITRE</a>
+</footer>
+
+<script>
+// Los datos vienen del informe real de gosec, no de una lista escrita a mano.
+const HALL = [
+  {sev:"HIGH",  reg:"G101", cwe:798,  linea:30,    det:"Potential hardcoded credentials", cod:'const apiPassword = "s3cr3t-de-ejemplo-no-usar"'},
+  {sev:"HIGH",  reg:"G101", cwe:798,  linea:"33", det:"Potential hardcoded credentials: RSA private key", cod:'const privateKeyPem = `-----BEGIN RSA PRIVATE KEY-----'},
+  {sev:"HIGH",  reg:"G702", cwe:78,   linea:39,    det:"Command injection via taint analysis", cod:'salida, err := exec.Command("file", "-b", mime).Output()'},
+  {sev:"HIGH",  reg:"G703", cwe:22,   linea:45,    det:"Path traversal via taint analysis", cod:'return ioutil.ReadFile(ruta)  // ruta viene de la peticion'},
+  {sev:"HIGH",  reg:"G703", cwe:22,   linea:51,    det:"Path traversal via taint analysis", cod:'destino := filepath.Join("/tmp/descargas", usuario, nombre)'},
+  {sev:"MEDIUM",reg:"G112", cwe:400,  linea:"138", det:"Potential Slowloris Attack because ReadHeaderTimeout is not set", cod:'servidor := &http.Server{Addr: ":8080", Handler: mux}'},
+  {sev:"MEDIUM",reg:"G202", cwe:89,   linea:56,    det:"SQL string concatenation", cod:'query := "SELECT id, correo FROM usuarios WHERE nombre = \'" + nombre + "\'"'},
+  {sev:"MEDIUM",reg:"G204", cwe:78,   linea:39,    det:"Subprocess launched with variable", cod:'exec.Command("file", "-b", mime)'},
+  {sev:"MEDIUM",reg:"G304", cwe:22,   linea:45,    det:"Potential file inclusion via variable", cod:'return ioutil.ReadFile(ruta)'},
+  {sev:"MEDIUM",reg:"G401", cwe:328,  linea:"70",  det:"Use of weak cryptographic primitive", cod:'md := md5.Sum([]byte(password))'},
+  {sev:"MEDIUM",reg:"G401", cwe:328,  linea:71,    det:"Use of weak cryptographic primitive", cod:'sha := sha1.Sum([]byte(password))'},
+  {sev:"MEDIUM",reg:"G501", cwe:328,  linea:14,    det:"Blocklisted import crypto/md5: weak cryptographic primitive", cod:'"crypto/md5"'},
+  {sev:"MEDIUM",reg:"G505", cwe:328,  linea:15,    det:"Blocklisted import crypto/sha1: weak cryptographic primitive", cod:'"crypto/sha1"'},
+  {sev:"MEDIUM",reg:"G705", cwe:79,   linea:117,   det:"XSS via taint analysis", cod:'mux.HandleFunc("/saludo", func(w http.ResponseWriter, r *http.Request) {'},
+  {sev:"MEDIUM",reg:"G705", cwe:79,   linea:122,   det:"XSS via taint analysis", cod:'if pagina, err := paginaDeSaludo(nombre); err == nil {'},
+  {sev:"MEDIUM",reg:"G710", cwe:601,  linea:77,    det:"Open redirect via taint analysis", cod:'http.Redirect(w, r, destino, http.StatusSeeOther)'},
+  {sev:"LOW",   reg:"G104", cwe:703,  linea:117,   det:"Errors unhandled", cod:'_ = pagina.Execute(w, nil)'}
+];
+
+// G702, G703, G705 y G710 provienen del analisis de flujo de datos.
+const TAINT = new Set(["G702", "G703", "G705", "G710"]);
+
+const lista = document.getElementById('lista');
+
+function pintar(filtro) {
+  const datos = HALL.filter(h => {
+    if (filtro === 'todas') return true;
+    if (filtro === 'taint') return TAINT.has(h.reg);
+    return h.sev.toLowerCase() === filtro;
+  });
+
+  lista.innerHTML = datos.map(h => `
+    <article class="hallazgo ${h.sev.toLowerCase()}">
+      <div class="hallazgo__cab">
+        <span class="sev ${h.sev.toLowerCase()}">${h.sev}</span>
+        <span class="regla">${h.reg}</span>
+        <a class="cwe" href="https://cwe.mitre.org/data/definitions/${h.cwe}.html"
+           target="_blank" rel="noopener">CWE-${h.cwe}</a>
+        ${TAINT.has(h.reg) ? '<span class="sev bajo">taint</span>' : ''}
+        <span class="linea">main.go:${h.linea}</span>
+      </div>
+      <p class="hallazgo__det">${h.det}</p>
+      <pre class="codigo"><code>${h.cod.replace(/</g, '&lt;')}</code></pre>
+    </article>`).join('') || '<p class="aviso">Sin hallazgos para este filtro.</p>';
+}
+
+document.querySelectorAll('.filtros button').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.filtros button').forEach(x => x.classList.remove('activo'));
+    b.classList.add('activo');
+    pintar(b.dataset.f);
+  };
+});
+
+pintar('todas');
+</script>
+</body>
+</html>
