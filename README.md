@@ -21,10 +21,11 @@ estático con reglas mapeadas a CWE.
 
 | | |
 |---|---|
-| **Aplicación publicada** | https://sast-taskflow.vercel.app |
+| **Aplicación publicada** | https://sast-taskflow-iota.vercel.app |
 | **Repositorio** | https://github.com/UPT-FAING-EPIS/actividad-grupal-1-sast |
-| **Artículo 1** | https://dev.to/dejameingresar/auditar-dependencias-con-owasp-dependency-check-ei8 |
-| **Artículo 2** | https://dev.to/dejameingresar/detectar-vulnerabilidades-en-go-con-gosec-2h46 |
+| **Artículo 1** (Nicole Rios Cohaila) | https://dev.to/korins707/los-bugs-mas-caros-del-escaneo-de-vulnerabilidades-no-estan-en-el-codigo-estan-en-el-pipeline-lf0 |
+| **Artículo 2** (Patrick Rodriguez Cardenas) | https://dev.to/dejameingresar/auditar-dependencias-con-owasp-dependency-check-ei8 |
+| **Artículo 3** (Patrick Rodriguez Cardenas) | https://dev.to/dejameingresar/detectar-vulnerabilidades-en-go-con-gosec-2h46 |
 
 ## Resultados
 
@@ -76,3 +77,4 @@ No desplegar, no exponer, no usar con datos reales.
 
 - [Auditar dependencias con OWASP Dependency-Check](articulos/01-dependency-check.md)
 - [Detectar vulnerabilidades en Go con gosec](articulos/02-gosec.md)
+- [Los bugs más caros del escaneo de vulnerabilidades no están en el código, están en el pipeline](articulos/03-automatizacion-del-escaneo.md)
