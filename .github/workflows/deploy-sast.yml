@@ -30,6 +30,7 @@ jobs:
       - name: Instalar gosec
         run: go install github.com/securego/gosec/v2/cmd/gosec@v2.29.0
 
+      # go.mod vive en app/, no en la raiz: hay que escanear desde ahi.
       - name: Escanear
         working-directory: app
         run: |
@@ -49,9 +50,7 @@ jobs:
           sev = collections.Counter(i['severity'] for i in iss)
           print(f"Hallazgos: {len(iss)} | {dict(sev)}")
           print(f"Archivos: {st.get('files')} | Lineas: {st.get('lines')}")
-          pathlib.Path('gosec-resumen.txt').write_text(
-              '\n'.join(f"[{i['severity']}] {i['rule_id']} {i['file']}:{i['line']} {i['details']}"
-                        for i in iss), encoding='utf-8')
+          pathlib.Path('gosec-resumen.txt').write_text('\n'.join(f"[{i['severity']}] {i['rule_id']} {i['file']}:{i['line']} {i['details']}" for i in iss), encoding='utf-8')
           if not iss:
               raise SystemExit("::error::0 hallazgos: el escaneo no ocurrio")
           EOF
@@ -74,8 +73,8 @@ jobs:
       - uses: actions/checkout@v4
 
       # Sin esta verificacion, un secret ausente se convierte en `--token ""` y
-      # el unico error que sale es "You defined --token, but it's missing a value",
-      # que no dice nada sobre que falta configurarlo.
+      # el unico error que sale es "You defined --token, but it's missing a
+      # value", que no dice nada sobre que falta configurarlo.
       - name: Verificar secrets de Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -90,11 +89,21 @@ jobs:
           done
           echo "Los tres secrets de Vercel estan presentes."
 
+      # El CLI de Vercel no recibe el proyecto por variables de entorno: las lee
+      # de web/.vercel/project.json. Con solo --token y --scope el comando
+      # responde "You specified VERCEL_PROJECT_ID but you forgot VERCEL_ORG_ID"
+      # o despliega en un proyecto equivocado.
       - name: Desplegar
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-organization-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: web
-          deploy-command: vercel deploy --prod --yes
+        working-directory: web
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          mkdir -p .vercel
+          printf '{"projectId": "%s", "orgId": "%s"}\n' "$VERCEL_PROJECT_ID" "$VERCEL_ORG_ID" > .vercel/project.json
+          cat .vercel/project.json
+          npx --yes vercel@25 deploy --prod --yes --token "$VERCEL_TOKEN"
+          echo "--- alias de produccion ---"
+          npx --yes vercel@25 ls --yes --token "$VERCEL_TOKEN" 2>/dev/null | head -20 || true

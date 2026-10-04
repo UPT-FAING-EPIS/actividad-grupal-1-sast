@@ -43,7 +43,7 @@ jobs:
 
       # working-directory: app es obligatorio. go.mod vive en app/, no en la raiz,
       # asi que el patron ./app/... ejecutado desde la raiz no tiene modulo que
-      # resolver: gosec responde con "Files: 0" sin explicar por que.
+      # resolver: gosec responde "Files: 0" sin explicar por que.
       - name: Escanear el codigo Go
         working-directory: app
         run: |
@@ -52,8 +52,7 @@ jobs:
           test -f "$GITHUB_WORKSPACE/informe.json"
 
       # Un escaneo que no encuentra nada y un escaneo que no ocurrio se ven
-      # igual en el log. Este paso separa los dos casos y ademas deja el
-      # resumen legible que se descarga como artefacto.
+      # igual en el log. Este paso separa los dos casos.
       - name: Resumen legible
         if: always()
         run: |
@@ -110,25 +109,20 @@ jobs:
           restore-keys: dependency-check-
 
       # El script cli/release.sh ya no existe en el repositorio upstream: pedia
-      # un 404 y su cuerpo ("404: Not Found")acababa ejecutado por bash. Se
-      # instala descargando el ZIP de la ultima release publicada.
+      # un 404 y su cuerpo ("404: Not Found") acababa ejecutado por bash. Se
+      # instala bajando el ZIP de la ultima release publicada.
       - name: Instalar OWASP Dependency-Check
         run: |
           set -euo pipefail
-          VER=$(curl -sSL --max-time 60 https://api.github.com/repos/dependency-check/DependencyCheck/releases/latest \
-                | python3 -c "import json,sys;print(json.load(sys.stdin)['tag_name'].lstrip('v'))")
+          VER=$(curl -sSL --max-time 60 https://api.github.com/repos/dependency-check/DependencyCheck/releases/latest | python3 -c "import json,sys;print(json.load(sys.stdin)['tag_name'].lstrip('v'))")
           echo "Dependency-Check $VER"
-          curl -sSL --max-time 300 -o /tmp/dc.zip \
+          URL="https://github.com/dependency-check/DependencyCheck/releases/download/v${VER}/dependency-check-${VER}-release.zip"
+          curl -sSL --max-time 300 -o /tmp/dc.zip "$URL"
           unzip -q /tmp/dc.zip -d /opt
-          # El ZIP trae dependency-check.sh (y .bat), no un binario sin
-          # extension: invocarlo como "dependency-check" da "No such file".
-          # Ademas $GITHUB_PATH solo se aplica a los pasos SIGUIENTES, asi que
-          # en este mismo paso hay que invocarlo por su ruta completa.
           DC=/opt/dependency-check/bin/dependency-check.sh
           test -x "$DC" || { echo "::error::no se encontro $DC"; exit 1; }
           echo "/opt/dependency-check/bin" >> "$GITHUB_PATH"
           sh "$DC" --version
-          /opt/dependency-check/bin/dependency-check --version
 
       # El modulo de app/ no declara dependencias de terceros, asi que el
       # escaneo sale en cero. Eso es un dato, no un fallo: el resumen declara
@@ -136,30 +130,19 @@ jobs:
       - name: Escanear el modulo Go
         run: |
           set -o pipefail
-          sh /opt/dependency-check/bin/dependency-check.sh \
-            --project "SAST TaskFlow" \
-            --scan app \
-            --out ./informes/dependencias \
-            --format HTML \
-            --format SARIF \
-            --data ~/.gradle/caches \
-            --noupdate || true
+          sh /opt/dependency-check/bin/dependency-check.sh --project "SAST TaskFlow" --scan app --out ./informes/dependencias --format HTML --format SARIF --data ~/.gradle/caches --noupdate || true
 
       - name: Resumen legible
         if: always()
         run: |
           mkdir -p informes/dependencias
-          test -f informes/dependencias/dependency-check-report.json || \
-            { echo "::error::Dependency-Check no produjo informe"; exit 1; }
+          test -f informes/dependencias/dependency-check-report.json || { echo "::error::Dependency-Check no produjo informe"; exit 1; }
           python3 - <<'EOF'
           import json, pathlib
           d = json.load(open('informes/dependencias/dependency-check-report.json'))
           deps = d.get('dependencies') or []
           vulns = [v for dep in deps for v in (dep.get('vulnerabilities') or [])]
-          texto = (
-              f"Dependencias analizadas: {len(deps)}\n"
-              f"Vulnerabilidades con CVE: {len(vulns)}\n"
-          )
+          texto = f"Dependencias analizadas: {len(deps)}\nVulnerabilidades con CVE: {len(vulns)}\n"
           pathlib.Path('informes/dependencias/resumen.txt').write_text(texto, encoding='utf-8')
           print(texto)
           if not deps:

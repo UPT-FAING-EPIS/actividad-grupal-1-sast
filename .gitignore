@@ -11,3 +11,4 @@ informe.json
 
 # sistema
 .DS_Store
+.vercel/
