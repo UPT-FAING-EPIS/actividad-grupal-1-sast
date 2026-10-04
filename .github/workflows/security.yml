@@ -121,8 +121,10 @@ jobs:
           curl -sSL --max-time 300 -o /tmp/dc.zip \
             "https://github.com/dependency-check/DependencyCheck/releases/download/v${VER}/dependency-check-${VER}-release.zip"
           unzip -q /tmp/dc.zip -d /opt
+          # $GITHUB_PATH solo se aplica a los pasos SIGUIENTES, asi que en este
+                    # mismo paso hay que invocar el binario por su ruta completa.
           echo "/opt/dependency-check/bin" >> "$GITHUB_PATH"
-          dependency-check --version
+          /opt/dependency-check/bin/dependency-check --version
 
       # El modulo de app/ no declara dependencias de terceros, asi que el
       # escaneo sale en cero. Eso es un dato, no un fallo: el resumen declara
