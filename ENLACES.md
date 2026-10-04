@@ -28,4 +28,4 @@ Informe de SAST como aplicación web, desplegado en Vercel por GitHub Actions:
 
 ## Video
 
-Pendiente de grabar. El guion está en `guion-video.md` (4 min 40 s).
+Pendiente de grabar. El guion está en `guion-video.md` (4 min 30 s, 9 planos).
