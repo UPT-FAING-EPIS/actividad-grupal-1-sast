@@ -31,10 +31,11 @@ jobs:
         run: go install github.com/securego/gosec/v2/cmd/gosec@v2.29.0
 
       - name: Escanear
+        working-directory: app
         run: |
           set -o pipefail
-          $(go env GOPATH)/bin/gosec -no-fail -fmt=json -out=informe.json ./app/...
-          test -f informe.json
+          $(go env GOPATH)/bin/gosec -no-fail -fmt=json -out="$GITHUB_WORKSPACE/informe.json" ./...
+          test -f "$GITHUB_WORKSPACE/informe.json"
 
       - name: Resumen
         if: always()

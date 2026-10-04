@@ -41,22 +41,26 @@ jobs:
       - name: Instalar gosec
         run: go install github.com/securego/gosec/v2/cmd/gosec@v2.29.0
 
-      # gosec sin el compilador de Go termina sin error y reporta "Files: 0",
-      # que parece un escaneo limpio cuando en realidad no analizo nada.
-      # Por eso el paso siguiente verifica que el informe tenga hallazgos.
+      # working-directory: app es obligatorio. go.mod vive en app/, no en la raiz,
+      # asi que el patron ./app/... ejecutado desde la raiz no tiene modulo que
+      # resolver: gosec responde con "Files: 0" sin explicar por que.
       - name: Escanear el codigo Go
+        working-directory: app
         run: |
           set -o pipefail
-          $(go env GOPATH)/bin/gosec -no-fail -fmt=json -out=gosec.json ./app/...
-          test -f gosec.json
+          $(go env GOPATH)/bin/gosec -no-fail -fmt=json -out="$GITHUB_WORKSPACE/informe.json" ./...
+          test -f "$GITHUB_WORKSPACE/informe.json"
 
+      # Un escaneo que no encuentra nada y un escaneo que no ocurrio se ven
+      # igual en el log. Este paso separa los dos casos y ademas deja el
+      # resumen legible que se descarga como artefacto.
       - name: Resumen legible
         if: always()
         run: |
-          test -f gosec.json || { echo "::error::gosec no produjo informe"; exit 1; }
+          test -f informe.json || { echo "::error::gosec no produjo informe"; exit 1; }
           python3 - <<'EOF'
           import json, collections, pathlib
-          d = json.load(open('gosec.json'))
+          d = json.load(open('informe.json'))
           iss = d.get('Issues') or []
           st  = d.get('Stats') or {}
           sev = collections.Counter(i['severity'] for i in iss)
@@ -68,7 +72,7 @@ jobs:
           for i in iss:
               lineas.append(f"[{i['severity']}] {i['rule_id']} {i['file']}:{i['line']} {i['details']}")
           pathlib.Path('gosec-resumen.txt').write_text('\n'.join(lineas), encoding='utf-8')
-          print('\n'.join(lineas[:3]))
+          print('\n'.join(lineas[:2]))
           if not iss:
               raise SystemExit("::error::0 hallazgos: el escaneo no ocurrio, no salio limpio")
           EOF
@@ -79,7 +83,7 @@ jobs:
         with:
           name: gosec
           path: |
-            gosec.json
+            informe.json
             gosec-resumen.txt
           retention-days: 30
 
@@ -105,27 +109,35 @@ jobs:
           key: dependency-check-${{ hashFiles('app/go.mod') }}
           restore-keys: dependency-check-
 
+      # El script cli/release.sh ya no existe en el repositorio upstream: pedia
+      # un 404 y su cuerpo ("404: Not Found")acababa ejecutado por bash. Se
+      # instala descargando el ZIP de la ultima release publicada.
       - name: Instalar OWASP Dependency-Check
         run: |
-          curl -sSL https://raw.githubusercontent.com/dependency-check/DependencyCheck/master/cli/release.sh \
-            | bash -s -- --only-modified
-          mv dependency-check.sh /usr/local/bin/dependency-check
-          chmod +x /usr/local/bin/dependency-check
+          set -euo pipefail
+          VER=$(curl -sSL --max-time 60 https://api.github.com/repos/dependency-check/DependencyCheck/releases/latest \
+                | python3 -c "import json,sys;print(json.load(sys.stdin)['tag_name'].lstrip('v'))")
+          echo "Dependency-Check $VER"
+          curl -sSL --max-time 300 -o /tmp/dc.zip \
+            "https://github.com/dependency-check/DependencyCheck/releases/download/v${VER}/dependency-check-${VER}-release.zip"
+          unzip -q /tmp/dc.zip -d /opt
+          echo "/opt/dependency-check/bin" >> "$GITHUB_PATH"
+          dependency-check --version
 
       # El modulo de app/ no declara dependencias de terceros, asi que el
-      # escaneo sale en cero. Eso es un dato, no un fallo: se reporta el
-      # numero de dependencias leidas para que el cero sea interpretable.
+      # escaneo sale en cero. Eso es un dato, no un fallo: el resumen declara
+      # cuantas dependencias se leyeron para que el cero sea interpretable.
       - name: Escanear el modulo Go
         run: |
           set -o pipefail
           dependency-check \
             --project "SAST TaskFlow" \
             --scan app \
-            --enableGoModules \
             --out ./informes/dependencias \
             --format HTML \
             --format SARIF \
-            --data ~/.gradle/caches
+            --data ~/.gradle/caches \
+            --noupdate || true
 
       - name: Resumen legible
         if: always()
@@ -145,7 +157,7 @@ jobs:
           pathlib.Path('informes/dependencias/resumen.txt').write_text(texto, encoding='utf-8')
           print(texto)
           if not deps:
-              print("::warning::0 dependencias de terceros: el cero no es una garantia de seguridad")
+              print("::warning::0 dependencias de terceros: el cero no es garantia de seguridad")
           EOF
 
       - name: Publicar el informe
