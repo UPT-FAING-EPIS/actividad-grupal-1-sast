@@ -104,6 +104,7 @@ jobs:
           mkdir -p .vercel
           printf '{"projectId": "%s", "orgId": "%s"}\n' "$VERCEL_PROJECT_ID" "$VERCEL_ORG_ID" > .vercel/project.json
           cat .vercel/project.json
-          npx --yes vercel@25 deploy --prod --yes --token "$VERCEL_TOKEN"
-          echo "--- alias de produccion ---"
-          npx --yes vercel@25 ls --yes --token "$VERCEL_TOKEN" 2>/dev/null | head -20 || true
+          # Sin --yes: la CLI de Vercel 25 lo rechaza con
+          # "unknown or unexpected option: --yes". Con --token no hay
+          # interactividad que confirmar.
+          npx --yes vercel@25 deploy --prod --token "$VERCEL_TOKEN"
