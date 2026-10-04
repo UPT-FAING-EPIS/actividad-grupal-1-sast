@@ -1,7 +1,7 @@
 name: Publicar informe SAST
 
 # Despliega el informe de SAST a Vercel en cada push a main.
-# El sitio es estatico puro: no hay paso de build, solo publicacion.
+# El sitio es estatico puro (web/index.html): no hay paso de build, solo publicacion.
 
 on:
   push:
@@ -20,9 +20,6 @@ jobs:
   gosec:
     name: Escanear app
     runs-on: ubuntu-latest
-    outputs:
-      total: ${{ steps.scan.outputs.total }}
-      altos: ${{ steps.scan.outputs_altos }}
     steps:
       - uses: actions/checkout@v4
 
@@ -34,24 +31,32 @@ jobs:
         run: go install github.com/securego/gosec/v2/cmd/gosec@v2.29.0
 
       - name: Escanear
-        id: scan
         run: |
+          set -o pipefail
           $(go env GOPATH)/bin/gosec -no-fail -fmt=json -out=informe.json ./app/...
+          test -f informe.json
+
+      - name: Resumen
+        if: always()
+        run: |
+          test -f informe.json || { echo "::error::gosec no produjo informe"; exit 1; }
           python3 - <<'EOF'
-          import json, collections, pathlib, os
+          import json, collections, pathlib
           d = json.load(open('informe.json'))
           iss = d.get('Issues') or []
-          st = d.get('Stats') or {}
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-              fh.write(f"total={len(iss)}\n")
-          print(f"Hallazgos: {len(iss)}")
-          print("Por severidad:", dict(collections.Counter(i['severity'] for i in iss)))
+          st  = d.get('Stats') or {}
+          sev = collections.Counter(i['severity'] for i in iss)
+          print(f"Hallazgos: {len(iss)} | {dict(sev)}")
           print(f"Archivos: {st.get('files')} | Lineas: {st.get('lines')}")
           pathlib.Path('gosec-resumen.txt').write_text(
-              '\n'.join(f"[{i['severity']}] {i['rule_id']} L{i['line']} {i['details']}" for i in iss))
+              '\n'.join(f"[{i['severity']}] {i['rule_id']} {i['file']}:{i['line']} {i['details']}"
+                        for i in iss), encoding='utf-8')
+          if not iss:
+              raise SystemExit("::error::0 hallazgos: el escaneo no ocurrio")
           EOF
 
       - name: Guardar el informe
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: informe-gosec
@@ -67,9 +72,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Desplegar
-        run: npx vercel deploy --prod --yes --token "${{ secrets.VERCEL_TOKEN }}"
-        working-directory: web
+      # Sin esta verificacion, un secret ausente se convierte en `--token ""` y
+      # el unico error que sale es "You defined --token, but it's missing a value",
+      # que no dice nada sobre que falta configurarlo.
+      - name: Verificar secrets de Vercel
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          for v in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
+            if [ -z "${!v}" ]; then
+              echo "::error::Falta el secret $v en este repositorio (Settings > Secrets > Actions)"
+              exit 1
+            fi
+          done
+          echo "Los tres secrets de Vercel estan presentes."
+
+      - name: Desplegar
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-organization-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: web
+          deploy-command: vercel deploy --prod --yes
