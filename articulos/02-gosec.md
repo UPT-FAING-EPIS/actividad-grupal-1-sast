@@ -151,6 +151,7 @@ informe sirva para algo.
 
 ## Enlaces
 
-- Repositorio con el código y el informe: https://github.com/UPT-FAING-EPIS/si784-2026-ii-si784-2026-ii-examen-u1-dejameingresar
+- Repositorio: https://github.com/UPT-FAING-EPIS/actividad-grupal-1-sast
+- Aplicación con el informe: https://sast-taskflow.vercel.app
 - gosec: https://github.com/securego/gosec
 - CWE de la OWASP: https://cwe.mitre.org/

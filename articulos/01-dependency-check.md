@@ -142,6 +142,7 @@ mismo control se repite sin que nadie tenga que acordarse de ejecutarlo.
 
 ## Enlaces
 
-- Repositorio: https://github.com/UPT-FAING-EPIS/si784-2026-ii-si784-2026-ii-examen-u1-dejameingresar
+- Repositorio: https://github.com/UPT-FAING-EPIS/actividad-grupal-1-sast
+- Aplicación con el informe: https://sast-taskflow.vercel.app
 - OWASP Dependency-Check: https://owasp.org/www-project-dependency-check/
 - Base de datos OWASP: https://github.com/dependency-check/DependencyCheck
