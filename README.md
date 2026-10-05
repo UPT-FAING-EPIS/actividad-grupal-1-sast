@@ -12,10 +12,9 @@ estático con reglas mapeadas a CWE.
 | Ruta | Qué es |
 |---|---|
 | `app/` | Aplicación Go deliberadamente insegura, caso de estudio |
-| `articulos/` | Los dos artículos escritos para publicar |
+| `articulos/` | Los tres artículos del equipo, escritos para publicar |
 | `informe-gosec.json` | Informe real del escaneo: 17 hallazgos |
 | `web/` | Informe de SAST publicado como aplicación web |
-| `guion-video.md` | Guion del video de máximo 5 minutos |
 
 ## Enlaces
 
