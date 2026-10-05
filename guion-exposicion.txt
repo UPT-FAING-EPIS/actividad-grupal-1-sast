@@ -1,201 +1,199 @@
-GUION PARA EXPONER LA WEB - Informe SAST TaskFlow
+GUION DE GRABACION - Informe SAST TaskFlow
 Actividad Grupal 1: Static Application Security Testing Tools
 SI-784 Calidad y Pruebas de Software - Ciclo 7
 
-Duracion aproximada: 3 minutos
-Antes de empezar: deja abierta la app en una pestana y el repositorio en otra.
-
-IMPORTANTE: usar https://sast-taskflow.vercel.app
-La direccion con "-iota" al final muestra una version vieja donde los
-filtros no funcionan.
+Duracion de la narracion: unos 3 minutos 20 segundos a ritmo pausado.
+Para el video con limite de 5 minutos, deja los ultimos 2 minutos de margen
+para mostrar la pagina en silencio mientras termina la locucion.
 
 
-=== 1. QUE ES ESTO (20 segundos) ===
+=== COMO GRABAR ===
 
-Esta es el informe de analisis estatico de una aplicacion. Lo que hay aqui no
-son datos de ejemplo: son los 17 hallazgos que gosec encontro de verdad al
-escanear 150 lineas de codigo Go.
+Los bloques van del 1 al 6, en orden.
+Entre bloques, deja 3 segundos de respiro. No hace falta anunciar los titulos.
 
-La aplicacion que se escanea es REAL y esta en el repositorio. Y es
-deliberadamente insegura: la escribimos con los fallos mas comunes a proposito,
-para poder demostrar que la herramienta los detecta.
-
-Eso es lo que diferencia esto de mostrar un informe bonito: cada hallazgo de
-esta pantalla tiene una linea de codigo que se puede abrir y leer.
+ La imagen ya esta en pantalla antes de empezar a hablar. Empieza a hablar
+ sobre el panel, no sobre la pagina en general.
 
 
-=== 2. EL PANEL SUPERIOR (20 segundos) ===
+=== 1. QUE ES ESTO (25 segundos) ===
 
-[Senala los seis numeros]
+Esta es una aplicacion web. Lo que muestra son los resultados de un analisis
+estatico de vulnerabilidades.
 
-Diecisiete hallazgos. Cinco de severidad alta, once media, uno baja. Mil
-quinientas lineas. Trece reglas distintas.
+Son 17 hallazgos que una herramienta encontro de verdad al escanear 150 lineas
+de codigo. No son datos de ejemplo.
 
-El codigo esta en el repositorio. Un solo archivo, main.go.
-
-
-=== 3. LOS CINCO DE SEVERIDAD ALTA (60 segundos) ===
-
-[Presiona el boton "Alta". Este es el momento fuerte.]
-
-Aqui hay cinco, y no son cinco casos iguales.
-
-Dos son credenciales en el codigo. En la linea 30 hay una contrasena escrita
-literalmente. Y en la 33 hay una clave privada RSA completa, pegada dentro del
-fuente.
-
-Las otras tres las encontro el analisis de flujo de datos, y ahi esta lo
-interesante.
-
-G702, en la linea 39: inyeccion de comandos.
-G703, en las lineas 45 y 51: recorrido de rutas.
-
-Cada una trae su CWE enlazado a la MITRE, la linea exacta y el fragmento de
-codigo. Se puede comprobar.
+La aplicacion que se escanea esta en el repositorio, y es deliberadamente
+insegura: la escribimos con los fallos mas comunes a proposito, para poder
+demostrar que la herramienta los detecta.
 
 
-=== 4. POR QUE EL ANALISIS DE TAINT IMPORTA (50 segundos) ===
+=== 2. EL PANEL DE ARRIBA (10 segundos) ===
 
-[Presiona "Analisis de taint"]
+Aqui arriba esta el resumen.
 
-Este filtro agrupa las cuatro reglas que no buscan un patron, sino que siguen
-el dato.
+Diecisiete hallazgos. Cinco de severidad alta, once media, uno baja.
+Trece reglas distintas. Y el codigo completo son 150 lineas, en un solo
+archivo.
 
-Y aqui va el punto que quiero que quede claro, porque es la diferencia entre
+
+=== 3. FILTRAR POR SEVERIDAD ALTA (25 segundos) ===
+
+Si filtramos por severidad alta, quedan cinco. Y no son cinco casos iguales.
+
+Dos son credenciales escritas directamente en el codigo. En la linea 30 hay
+una contrasena literal. En la 33 hay una clave privada RSA completa, pegada
+dentro del archivo.
+
+Las otras tres las encontro el analisis de flujo de datos, que es lo que
+explico despues.
+
+
+=== 4. POR QUE EL FLUJO DE DATOS IMPORTA (75 segundos) ===
+
+Aqui hay un filtro que agrupa las cuatro reglas que no buscan un patron, sino
+que siguen el dato desde que entra hasta donde se usa.
+
+Y este es el punto que quiero explicar bien, porque es la diferencia entre
 esta herramienta y un filtro de palabras clave.
 
-Mira la linea 39. Hay dos hallazgos sobre ella.
+Miren la linea 39. Hay dos hallazgos sobre esa misma linea.
 
-G204 dice: "subproceso lanzado con variable". Y tiene razon, pero eso es
-generico. Te dice que hay un exec.Command con una variable, y ya lo sabias
-mirando el codigo.
+La regla G204 dice: subproceso lanzado con variable. Es cierto, pero es
+generico. Basicamente dice que hay un comando del sistema con una variable, y eso
+ya se ve leyendo el codigo.
 
-G702 dice: "inyeccion de comandos". Sobre la MISMA linea.
+La regla G702 dice: inyeccion de comandos. Sobre la misma linea.
 
-La diferencia es que G702 sigue el dato. Ve que la variable "mime" viene de
-r.URL.Query(), o sea de la peticion del usuario, y que nadie lo valido antes de
-pasarlo al comando del sistema.
+La diferencia es que G702 sigue el dato. Ve que la variable viene de la URL de
+la peticion, o sea del usuario, y que nadie lo valido antes de pasarlo al
+comando.
 
 Uno te dice que hay algo. El otro te dice cual es el problema y por que.
 
-Lo mismo con las rutas: G304 dice "inclusion de archivo via variable", y G703
-dice "recorrido de rutas", porque sabe que la ruta viene de la peticion sin
-comprobar.
+Con las rutas pasa igual. La regla G304 dice inclusion de archivo via variable.
+La regla G703 dice recorrido de rutas, porque sabe que la ruta viene de la
+peticion sin comprobar.
 
 
-=== 5. LOS MEDIUM (30 segundos) ===
+=== 5. SEVERIDAD MEDIA (30 segundos) ===
 
-[Presiona "Media"]
+En media hay once hallazgos.
 
-Once, y aqui conviene ser honesto con lo que significan.
+Dos son MD5 y SHA1, que hoy no sirven para contrasenas. Uno es SQL armado por
+concatenacion de cadenas. Uno es la ausencia de timeouts en el servidor, que
+abre la puerta a Slowloris. Dos son XSS. Uno es una redireccion abierta.
 
-Dos son MD5 y SHA1, que hoy no sirven para contrasenas.
-Uno es SQL armado por concatenacion de cadenas.
-Uno es la ausencia de timeouts en el servidor, que abre la puerta a Slowloris.
-Dos son XSS por analisis de taint.
-Uno es una redireccion abierta.
-
-Y uno es el mas importante: gosec tambien marca errores no manejados. Es el unico de
-severidad baja, y no es una vulnerabilidad: es una recomendacion de higiene.
+Y uno es el mas importante de este bloque: gosec tambien marca errores no
+manejados. Es el unico de severidad baja, y no es una vulnerabilidad. Es una
+recomendacion de higiene de codigo.
 
 
-=== 6. CIERRE (25 segundos) ===
+=== 6. CIERRE (35 segundos) ===
 
-Resumiendo: 17 hallazgos reales, cinco de ellos de severidad alta, y cuatro
-encontrados por analisis de flujo de datos y no por busqueda de patron.
+Para cerrar.
 
-Y lo mas importante: esto no se ejecuto una sola vez a mano. El repositorio
-tiene un workflow que reescanea la aplicacion y republica este informe en cada
-push a la rama principal, mas un cron semanal que recoge los hallazgos que
-hubiera en ese momento.
+Diecisiete hallazgos reales, cinco de severidad alta, y cuatro encontrados por
+analisis de flujo de datos y no por busqueda de patron.
 
-El codigo, el informe completo en JSON y los dos workflows estan en el
-repositorio. Gracias.
+Y esto no se ejecuto una sola vez a mano. El repositorio tiene una automatizacion que reescanea la aplicacion y republica este informe en
+cada push. Ademas corre una vez por semana, porque la base de datos de
+vulnerabilidades cambia todos los dias.
+
+El codigo, el informe completo en formato JSON y la automatizacion estan en
+el repositorio. Fin de la exposicion.
 
 
 === DATOS EXACTOS PARA NO EQUIVOCARTE ===
 
-Herramienta: gosec 2.29.0 (securego/gosec)
+Herramienta: gosec 2.29.0, del proyecto securego/gosec
 
 Aplicacion escaneada:
 - Un solo archivo: app/main.go
 - 150 lineas
 - 6 rutas HTTP, cada una con un fallo deliberado
 
-Las seis rutas y su fallo:
-1. /saludo    - plantilla sin escapar + redireccion con datos del usuario
-2. /descarga  - escritura en ruta construida sin restringir
-3. /archivo   - lectura de archivo con ruta de la peticion
-4. /token     - secreto concatenado sin validar
-5. /tipo      - comando del sistema con valor del usuario
-6. /hash      - MD5 y SHA1 para derivar contrasenas
+Las seis rutas:
+1. /saludo    Plantilla sin escapar, y redireccion con datos del usuario
+2. /descarga  Escritura en ruta construida sin restringir
+3. /archivo   Lectura de archivo con ruta de la peticion
+4. /token     Secreto concatenado sin validar
+5. /tipo      Comando del sistema con valor del usuario
+6. /hash      MD5 y SHA1 para derivar contrasenas
 
-Resultado: 17 hallazgos = 5 HIGH + 11 MEDIUM + 1 LOW
+Resultado: 17 hallazgos. Cinco de severidad alta, once media, uno baja.
 
-Las 5 de severidad ALTA:
-- G101  linea 30    Credencial escrita en el codigo
-- G101  linea 33-35 Clave privada RSA embebida en el fuente
-- G702  linea 39    Inyeccion de comandos (taint)
-- G703  linea 45    Recorrido de rutas (taint)
-- G703  linea 51    Recorrido de rutas (taint)
+Las cinco de severidad alta:
+- G101  linea 30     Credencial escrita en el codigo
+- G101  linea 33-35  Clave privada RSA embebida
+- G702  linea 39     Inyeccion de comandos, por analisis de taint
+- G703  linea 45     Recorrido de rutas, por analisis de taint
+- G703  linea 51     Recorrido de rutas, por analisis de taint
 
-Las 6 de analisis de taint:
-- G702  linea 39    Inyeccion de comandos
-- G703  linea 45    Recorrido de rutas
-- G703  linea 51    Recorrido de rutas
-- G705  linea 117   XSS
-- G705  linea 122   XSS
-- G710  linea 77    Redireccion abierta
+Las seis de analisis de taint:
+- G702  linea 39     Inyeccion de comandos
+- G703  linea 45     Recorrido de rutas
+- G703  linea 51     Recorrido de rutas
+- G705  linea 117    XSS
+- G705  linea 122    XSS
+- G710  linea 77     Redireccion abierta
 
-Reglas MEDIUM por cantidad:
-- G401 x2  Primitiva criptografica debil (MD5 y SHA1)
-- G705 x2  XSS por taint
-- G112     Slowloris por falta de ReadHeaderTimeout
-- G202     SQL por concatenacion de cadenas
-- G204     Subproceso con variable
-- G304     Inclusion de archivo via variable
-- G501     Import bloqueado crypto/md5
-- G505     Import bloqueado crypto/sha1
-- G710     Redireccion abierta por taint
+La unica de severidad baja:
+- G104  linea 117    Errores sin manejar
 
-La unica LOW:
-- G104  linea 117   Errores sin manejar
+Las once de severidad media, por regla:
+- G401 por dos: MD5 y SHA1
+- G705 por dos: XSS por taint
+- G112: Slowloris por falta de timeout de lectura de cabeceras
+- G202: SQL por concatenacion de cadenas
+- G204: Subproceso con variable
+- G304: Inclusion de archivo via variable
+- G501: Import bloqueado de crypto/md5
+- G505: Import bloqueado de crypto/sha1
+- G710: Redireccion abierta por taint
 
 Comando del escaneo:
   gosec -no-fail -fmt=json -out=informe.json ./...
 
-Advertencia importante sobre la herramienta: gosec necesita el compilador de Go
-instalado. Sin el, termina sin error y reporta "Files: 0", que parece un escaneo
-limpio pero es un escaneo que no ocurrio.
+Advertencia sobre la herramienta, por si la preguntan:
+gosec necesita el compilador de Go instalado. Sin el, termina sin error y
+reporta cero archivos analizados. Eso parece un escaneo limpio, pero es un
+escaneo que no ocurrio. Es una trampa facil de caer.
 
 
-=== ENLACES ===
+=== ENLACES PARA EL FINAL DEL VIDEO ===
 
 Repositorio: https://github.com/UPT-FAING-EPIS/actividad-grupal-1-sast
 Aplicacion:  https://sast-taskflow.vercel.app
 Articulo:    https://dev.to/dejameingresar/detectar-vulnerabilidades-en-go-con-gosec-2h46
 
-
-=== RECORDATORIO DE TONO ===
-
-Bajar el ritmo en el punto 4. Es la parte que diferencia este trabajo del
-resto: la diferencia entre una herramienta que busca patrones y una que sigue
-el dato. Si lo dices rapido se pierde.
-
-En el punto 5 no minimices los MEDIUM. Son hallazgos reales. Lo unico que
-dices es que uno de los once es mas higiene que vulnerabilidad.
-
-Si te preguntan por que la aplicacion es insegura a proposito, la respuesta es
-una frase: un escaneo en verde no demuestra que la herramienta funcione; hace
-falta algo que se pueda equivocar.
-
-Si te preguntan por el repositorio del examen: este es el de ESTA actividad. Es
-el repositorio de la actividad grupal de SAST.
+Usa sast-taskflow.vercel.app. La direccion con "-iota" al final muestra una
+version anterior, donde los filtros no funcionan.
 
 
-=== LO QUE NO SE HA HECHO ===
+=== NOTAS DE GRABACION ===
 
-El video de la consigna todavia no esta grabado. Si lo grabar, el guion de 5
-minutos esta en el repositorio, en el archivo guion-video.md.
+Bajar el ritmo en el bloque 4. Es la parte que diferencia este trabajo, y si
+se dice rapido se pierde el sentido.
 
-Los enlaces de los articulos todavia no se han mandado al grupo de Telegram.
+En el bloque 5 no hay que minimizar los hallazgos de severidad media. Son
+reales. Lo unico que se dice es que uno de los once es mas recomendacion de
+higiene que vulnerabilidad.
+
+En el bloque 3, no decir cinco vulnerabilidades como si fueran cinco casos
+identicos. Son dos credenciales y tres de analisis de flujo de datos. Esa
+distincion prepara el bloque 4.
+
+Si queda tiempo al final, dejar la pagina en pantalla unos segundos en lugar
+de cortar en seco.
+
+
+=== DESPUES DE GRABAR ===
+
+Pendientes de la consigna:
+1. Subir el video a YouTube, Facebook o TikTok, con enlace publico.
+2. Mandar al grupo de Telegram el enlace del video junto con los dos
+   articulos y el del repositorio.
+3. Anadir el enlace del video al archivo ENLACES.md del repositorio, y
+   regenerar el ZIP de entrega.
