@@ -20,10 +20,7 @@ Informe de SAST como aplicación web, desplegado en Vercel por GitHub Actions:
 
 ### Por Patrick Rodriguez Cardenas (`dejameingresar`)
 
-2. Auditar dependencias con OWASP Dependency-Check
-   https://dev.to/dejameingresar/auditar-dependencias-con-owasp-dependency-check-ei8
-
-3. Detectar vulnerabilidades en Go con gosec
+2. Detectar vulnerabilidades en Go con gosec
    https://dev.to/dejameingresar/detectar-vulnerabilidades-en-go-con-gosec-2h46
 
 ## Video

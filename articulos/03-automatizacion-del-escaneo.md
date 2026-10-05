@@ -17,8 +17,8 @@ escaneo se repitiera solo en cada `push`.
   <https://github.com/UPT-FAING-EPIS/actividad-grupal-1-sast>
 - **Informe de SAST publicado como aplicación web (Vercel, despliegue por
   GitHub Actions):** <https://sast-taskflow-iota.vercel.app>
-- **Artículo complementario del equipo:** [*Auditar dependencias con OWASP
-  Dependency-Check*](https://dev.to/dejameingresar/auditar-dependencias-con-owasp-dependency-check-ei8)
+- **Artículo del equipo sobre gosec:** [*Detectar vulnerabilidades en Go con
+  gosec*](https://dev.to/dejameingresar/detectar-vulnerabilidades-en-go-con-gosec-2h46)
 
 ## El resultado que importa
 
