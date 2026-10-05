@@ -12,7 +12,7 @@ estático con reglas mapeadas a CWE.
 | Ruta | Qué es |
 |---|---|
 | `app/` | Aplicación Go deliberadamente insegura, caso de estudio |
-| `articulos/` | Los tres artículos del equipo, escritos para publicar |
+| `articulos/` | Los artículos del equipo, escritos para publicar |
 | `informe-gosec.json` | Informe real del escaneo: 17 hallazgos |
 | `web/` | Informe de SAST publicado como aplicación web |
 
@@ -24,7 +24,6 @@ estático con reglas mapeadas a CWE.
 | **Repositorio** | https://github.com/UPT-FAING-EPIS/actividad-grupal-1-sast |
 | **Artículo 1** (Nicole Rios Cohaila) | https://dev.to/korins707/los-bugs-mas-caros-del-escaneo-de-vulnerabilidades-no-estan-en-el-codigo-estan-en-el-pipeline-lf0 |
 | **Artículo** (Patrick Rodriguez Cardenas) | https://dev.to/dejameingresar/detectar-vulnerabilidades-en-go-con-gosec-2h46 |
-| **Artículo 3** (Patrick Rodriguez Cardenas) | https://dev.to/dejameingresar/detectar-vulnerabilidades-en-go-con-gosec-2h46 |
 
 ## Resultados
 
