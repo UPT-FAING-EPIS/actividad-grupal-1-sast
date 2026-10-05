@@ -1,0 +1,201 @@
+GUION PARA EXPONER LA WEB - Informe SAST TaskFlow
+Actividad Grupal 1: Static Application Security Testing Tools
+SI-784 Calidad y Pruebas de Software - Ciclo 7
+
+Duracion aproximada: 3 minutos
+Antes de empezar: deja abierta la app en una pestana y el repositorio en otra.
+
+IMPORTANTE: usar https://sast-taskflow.vercel.app
+La direccion con "-iota" al final muestra una version vieja donde los
+filtros no funcionan.
+
+
+=== 1. QUE ES ESTO (20 segundos) ===
+
+Esta es el informe de analisis estatico de una aplicacion. Lo que hay aqui no
+son datos de ejemplo: son los 17 hallazgos que gosec encontro de verdad al
+escanear 150 lineas de codigo Go.
+
+La aplicacion que se escanea es REAL y esta en el repositorio. Y es
+deliberadamente insegura: la escribimos con los fallos mas comunes a proposito,
+para poder demostrar que la herramienta los detecta.
+
+Eso es lo que diferencia esto de mostrar un informe bonito: cada hallazgo de
+esta pantalla tiene una linea de codigo que se puede abrir y leer.
+
+
+=== 2. EL PANEL SUPERIOR (20 segundos) ===
+
+[Senala los seis numeros]
+
+Diecisiete hallazgos. Cinco de severidad alta, once media, uno baja. Mil
+quinientas lineas. Trece reglas distintas.
+
+El codigo esta en el repositorio. Un solo archivo, main.go.
+
+
+=== 3. LOS CINCO DE SEVERIDAD ALTA (60 segundos) ===
+
+[Presiona el boton "Alta". Este es el momento fuerte.]
+
+Aqui hay cinco, y no son cinco casos iguales.
+
+Dos son credenciales en el codigo. En la linea 30 hay una contrasena escrita
+literalmente. Y en la 33 hay una clave privada RSA completa, pegada dentro del
+fuente.
+
+Las otras tres las encontro el analisis de flujo de datos, y ahi esta lo
+interesante.
+
+G702, en la linea 39: inyeccion de comandos.
+G703, en las lineas 45 y 51: recorrido de rutas.
+
+Cada una trae su CWE enlazado a la MITRE, la linea exacta y el fragmento de
+codigo. Se puede comprobar.
+
+
+=== 4. POR QUE EL ANALISIS DE TAINT IMPORTA (50 segundos) ===
+
+[Presiona "Analisis de taint"]
+
+Este filtro agrupa las cuatro reglas que no buscan un patron, sino que siguen
+el dato.
+
+Y aqui va el punto que quiero que quede claro, porque es la diferencia entre
+esta herramienta y un filtro de palabras clave.
+
+Mira la linea 39. Hay dos hallazgos sobre ella.
+
+G204 dice: "subproceso lanzado con variable". Y tiene razon, pero eso es
+generico. Te dice que hay un exec.Command con una variable, y ya lo sabias
+mirando el codigo.
+
+G702 dice: "inyeccion de comandos". Sobre la MISMA linea.
+
+La diferencia es que G702 sigue el dato. Ve que la variable "mime" viene de
+r.URL.Query(), o sea de la peticion del usuario, y que nadie lo valido antes de
+pasarlo al comando del sistema.
+
+Uno te dice que hay algo. El otro te dice cual es el problema y por que.
+
+Lo mismo con las rutas: G304 dice "inclusion de archivo via variable", y G703
+dice "recorrido de rutas", porque sabe que la ruta viene de la peticion sin
+comprobar.
+
+
+=== 5. LOS MEDIUM (30 segundos) ===
+
+[Presiona "Media"]
+
+Once, y aqui conviene ser honesto con lo que significan.
+
+Dos son MD5 y SHA1, que hoy no sirven para contrasenas.
+Uno es SQL armado por concatenacion de cadenas.
+Uno es la ausencia de timeouts en el servidor, que abre la puerta a Slowloris.
+Dos son XSS por analisis de taint.
+Uno es una redireccion abierta.
+
+Y uno es el mas importante: gosec tambien marca errores no manejados. Es el unico de
+severidad baja, y no es una vulnerabilidad: es una recomendacion de higiene.
+
+
+=== 6. CIERRE (25 segundos) ===
+
+Resumiendo: 17 hallazgos reales, cinco de ellos de severidad alta, y cuatro
+encontrados por analisis de flujo de datos y no por busqueda de patron.
+
+Y lo mas importante: esto no se ejecuto una sola vez a mano. El repositorio
+tiene un workflow que reescanea la aplicacion y republica este informe en cada
+push a la rama principal, mas un cron semanal que recoge los hallazgos que
+hubiera en ese momento.
+
+El codigo, el informe completo en JSON y los dos workflows estan en el
+repositorio. Gracias.
+
+
+=== DATOS EXACTOS PARA NO EQUIVOCARTE ===
+
+Herramienta: gosec 2.29.0 (securego/gosec)
+
+Aplicacion escaneada:
+- Un solo archivo: app/main.go
+- 150 lineas
+- 6 rutas HTTP, cada una con un fallo deliberado
+
+Las seis rutas y su fallo:
+1. /saludo    - plantilla sin escapar + redireccion con datos del usuario
+2. /descarga  - escritura en ruta construida sin restringir
+3. /archivo   - lectura de archivo con ruta de la peticion
+4. /token     - secreto concatenado sin validar
+5. /tipo      - comando del sistema con valor del usuario
+6. /hash      - MD5 y SHA1 para derivar contrasenas
+
+Resultado: 17 hallazgos = 5 HIGH + 11 MEDIUM + 1 LOW
+
+Las 5 de severidad ALTA:
+- G101  linea 30    Credencial escrita en el codigo
+- G101  linea 33-35 Clave privada RSA embebida en el fuente
+- G702  linea 39    Inyeccion de comandos (taint)
+- G703  linea 45    Recorrido de rutas (taint)
+- G703  linea 51    Recorrido de rutas (taint)
+
+Las 6 de analisis de taint:
+- G702  linea 39    Inyeccion de comandos
+- G703  linea 45    Recorrido de rutas
+- G703  linea 51    Recorrido de rutas
+- G705  linea 117   XSS
+- G705  linea 122   XSS
+- G710  linea 77    Redireccion abierta
+
+Reglas MEDIUM por cantidad:
+- G401 x2  Primitiva criptografica debil (MD5 y SHA1)
+- G705 x2  XSS por taint
+- G112     Slowloris por falta de ReadHeaderTimeout
+- G202     SQL por concatenacion de cadenas
+- G204     Subproceso con variable
+- G304     Inclusion de archivo via variable
+- G501     Import bloqueado crypto/md5
+- G505     Import bloqueado crypto/sha1
+- G710     Redireccion abierta por taint
+
+La unica LOW:
+- G104  linea 117   Errores sin manejar
+
+Comando del escaneo:
+  gosec -no-fail -fmt=json -out=informe.json ./...
+
+Advertencia importante sobre la herramienta: gosec necesita el compilador de Go
+instalado. Sin el, termina sin error y reporta "Files: 0", que parece un escaneo
+limpio pero es un escaneo que no ocurrio.
+
+
+=== ENLACES ===
+
+Repositorio: https://github.com/UPT-FAING-EPIS/actividad-grupal-1-sast
+Aplicacion:  https://sast-taskflow.vercel.app
+Articulo:    https://dev.to/dejameingresar/detectar-vulnerabilidades-en-go-con-gosec-2h46
+
+
+=== RECORDATORIO DE TONO ===
+
+Bajar el ritmo en el punto 4. Es la parte que diferencia este trabajo del
+resto: la diferencia entre una herramienta que busca patrones y una que sigue
+el dato. Si lo dices rapido se pierde.
+
+En el punto 5 no minimices los MEDIUM. Son hallazgos reales. Lo unico que
+dices es que uno de los once es mas higiene que vulnerabilidad.
+
+Si te preguntan por que la aplicacion es insegura a proposito, la respuesta es
+una frase: un escaneo en verde no demuestra que la herramienta funcione; hace
+falta algo que se pueda equivocar.
+
+Si te preguntan por el repositorio del examen: este es el de ESTA actividad. Es
+el repositorio de la actividad grupal de SAST.
+
+
+=== LO QUE NO SE HA HECHO ===
+
+El video de la consigna todavia no esta grabado. Si lo grabar, el guion de 5
+minutos esta en el repositorio, en el archivo guion-video.md.
+
+Los enlaces de los articulos todavia no se han mandado al grupo de Telegram.
