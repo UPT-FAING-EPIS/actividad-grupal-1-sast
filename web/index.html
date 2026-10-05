@@ -153,19 +153,27 @@ const HALL = [
 // G702, G703, G705 y G710 provienen del analisis de flujo de datos.
 const TAINT = new Set(["G702", "G703", "G705", "G710"]);
 
+// Los botones usan nombres en espanol y los datos de gosec vienen en ingles:
+// sin este mapa, "alto" se compara contra "high" y el filtro no coincide nunca.
+const SEVERIDAD = { alto: "HIGH", medio: "MEDIUM", bajo: "LOW" };
+
+// Inverso, para el estilo: el CSS nombra las clases en espanol y los datos
+// de gosec llegan en ingles.
+const CLASE = { HIGH: "alto", MEDIUM: "medio", LOW: "bajo" };
+
 const lista = document.getElementById('lista');
 
 function pintar(filtro) {
   const datos = HALL.filter(h => {
     if (filtro === 'todas') return true;
     if (filtro === 'taint') return TAINT.has(h.reg);
-    return h.sev.toLowerCase() === filtro;
+    return h.sev === SEVERIDAD[filtro];
   });
 
   lista.innerHTML = datos.map(h => `
-    <article class="hallazgo ${h.sev.toLowerCase()}">
+    <article class="hallazgo ${CLASE[h.sev]}">
       <div class="hallazgo__cab">
-        <span class="sev ${h.sev.toLowerCase()}">${h.sev}</span>
+        <span class="sev ${CLASE[h.sev]}">${h.sev}</span>
         <span class="regla">${h.reg}</span>
         <a class="cwe" href="https://cwe.mitre.org/data/definitions/${h.cwe}.html"
            target="_blank" rel="noopener">CWE-${h.cwe}</a>

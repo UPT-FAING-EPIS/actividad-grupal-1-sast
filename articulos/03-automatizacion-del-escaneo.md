@@ -16,7 +16,7 @@ escaneo se repitiera solo en cada `push`.
 - **Repositorio público con el código, los workflows y el informe:**
   <https://github.com/UPT-FAING-EPIS/actividad-grupal-1-sast>
 - **Informe de SAST publicado como aplicación web (Vercel, despliegue por
-  GitHub Actions):** <https://sast-taskflow-iota.vercel.app>
+  GitHub Actions):** <https://sast-taskflow.vercel.app>
 - **Artículo del equipo sobre gosec:** [*Detectar vulnerabilidades en Go con
   gosec*](https://dev.to/dejameingresar/detectar-vulnerabilidades-en-go-con-gosec-2h46)
 

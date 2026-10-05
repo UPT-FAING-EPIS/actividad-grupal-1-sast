@@ -4,7 +4,7 @@
 
 Informe de SAST como aplicación web, desplegado en Vercel por GitHub Actions:
 
-- https://sast-taskflow-iota.vercel.app
+- https://sast-taskflow.vercel.app
 
 ## Repositorio
 
