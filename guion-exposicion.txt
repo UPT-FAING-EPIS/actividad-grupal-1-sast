@@ -189,11 +189,10 @@ Si queda tiempo al final, dejar la pagina en pantalla unos segundos en lugar
 de cortar en seco.
 
 
-=== DESPUES DE GRABAR ===
+=== ESTADO DE LA ENTREGA ===
 
-Pendientes de la consigna:
-1. Subir el video a YouTube, Facebook o TikTok, con enlace publico.
-2. Mandar al grupo de Telegram el enlace del video junto con los dos
-   articulos y el del repositorio.
-3. Anadir el enlace del video al archivo ENLACES.md del repositorio, y
-   regenerar el ZIP de entrega.
+Video publicado: https://youtu.be/uLJm23bjFOw
+Articulos: dos, uno por integrante, publicados en dev.to.
+Repositorio, aplicacion web y enlaces: en ENLACES.md.
+
+Pendiente: enviar los enlaces al grupo de Telegram.

@@ -25,4 +25,4 @@ Informe de SAST como aplicación web, desplegado en Vercel por GitHub Actions:
 
 ## Video
 
-Pendiente de grabar y de publicar.
+https://youtu.be/uLJm23bjFOw

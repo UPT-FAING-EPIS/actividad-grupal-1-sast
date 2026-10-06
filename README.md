@@ -24,6 +24,7 @@ estático con reglas mapeadas a CWE.
 | **Repositorio** | https://github.com/UPT-FAING-EPIS/actividad-grupal-1-sast |
 | **Artículo 1** (Nicole Rios Cohaila) | https://dev.to/korins707/los-bugs-mas-caros-del-escaneo-de-vulnerabilidades-no-estan-en-el-codigo-estan-en-el-pipeline-lf0 |
 | **Artículo** (Patrick Rodriguez Cardenas) | https://dev.to/dejameingresar/detectar-vulnerabilidades-en-go-con-gosec-2h46 |
+| **Video** | https://youtu.be/uLJm23bjFOw |
 
 ## Resultados
 
